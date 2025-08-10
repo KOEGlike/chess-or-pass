@@ -1,0 +1,39 @@
+{
+    "cSpell.words": [
+        "cuid",
+        "healthcheck",
+        "rschess",
+        "sqlx"
+    ],
+    "emmet.includeLanguages": {
+        "rust": "html",
+        "*.rs": "html"
+    },
+    "tailwindCSS.includeLanguages": {
+        "rust": "html",
+        "*.rs": "html"
+    },
+    "files.associations": {
+        "*.rs": "rust"
+    },
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "on",
+        "strings": true
+    },
+    "css.validate": false,
+    "rust-analyzer.rustfmt.overrideCommand": [
+        "leptosfmt",
+        "--stdin",
+        "--rustfmt"
+    ],
+    "[rust]": {
+        "editor.formatOnSave": true
+    },
+    "rust-analyzer.procMacro.ignored": {
+        "leptos_macro": [
+            "component",
+            "server"
+        ],
+    }
+}
