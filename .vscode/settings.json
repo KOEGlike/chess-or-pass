@@ -3,6 +3,7 @@
         "cuid",
         "healthcheck",
         "rschess",
+        "shakmaty",
         "sqlx"
     ],
     "emmet.includeLanguages": {
@@ -35,5 +36,8 @@
             "component",
             "server"
         ],
-    }
+    },
+    "rust-analyzer.cargo.features": [
+        "ssr",
+    ],
 }

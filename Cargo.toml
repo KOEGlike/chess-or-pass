@@ -24,7 +24,7 @@ sqlx = { version = "0.8", features = [
     "default",
 ], optional = true }
 
-rschess = "2"
+shakmaty="0.29"
 
 [features]
 hydrate = [
