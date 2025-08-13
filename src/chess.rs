@@ -68,7 +68,7 @@ pub fn ChessBoard() -> impl IntoView {
     let move_indicators = move || {
         log!("selected: {:?}", selected_piece.get());
 
-        let (square, piece) = match selected_piece.get() {
+        let (square, _piece) = match selected_piece.get() {
             Some(s) => s,
             None => return Either::Left(()),
         };
