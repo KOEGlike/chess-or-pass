@@ -1,12 +1,86 @@
 use leptos::either::Either;
+use leptos::html::P;
 use leptos::logging::*;
 use leptos::prelude::*;
 use shakmaty::*;
 
 #[component]
+fn Indicator(square: Square) -> impl IntoView {
+    let file = square.file().to_u32() + 1;
+    let rank = square.rank().to_u32() + 1;
+    view! {
+        <div
+            class="m-4 rounded-4xl bg-zinc-700/50 z-30 rotate-180"
+            style:grid-column=file.to_string()
+            style:grid-row=rank.to_string()
+        />
+    }
+}
+
+#[component]
+fn ChooseRole(
+    position: Square,
+    pieces: Vec<Piece>,
+    on_selected: Callback<Role, ()>,
+) -> impl IntoView {
+    let file = position.file().to_u32() + 1;
+    let rank = position.rank().to_u32() + 1;
+
+    let file_start = file as f32 - pieces.len() as f32 / 2.0;
+
+    let pieces = pieces
+        .into_iter()
+        .enumerate()
+        .map(|(i, piece)| {
+            let col = file_start + i as f32;
+            let on_click = move |_| on_selected.run(piece.role);
+            view! {
+                <ChessPiece
+                    piece
+                    style:grid-column=col.to_string()
+                    style:grid-row=rank.to_string()
+                    attr:class="z-50"
+                    on:click=on_click
+                />
+            }
+        })
+        .collect_view();
+
+    let end = { file_start + pieces.len() as f32 }.to_string();
+    view! {
+        <div
+            class="bg-white rounded-md m-1 z-40"
+            style:grid-column-start=file_start.to_string()
+            style:grid-column-end=end
+            style:grid-row=rank.to_string()
+        >
+            "lol"
+        </div>
+    }
+}
+
+#[component]
+fn ChessPiece(piece: Piece, #[prop(optional)] position: Option<Square>) -> impl IntoView {
+    view! {
+        <img
+            class="transition-transform duration-300 ease-in-out rotate-180"
+            style:grid-column=position
+                .map(|p| p.file().to_u32() + 1)
+                .map(|f| f.to_string())
+                .unwrap_or_default()
+            style:grid-row=position
+                .map(|p| p.rank().to_u32() + 1)
+                .map(|r| r.to_string())
+                .unwrap_or_default()
+            src=piece_to_img(&piece)
+        />
+    }
+}
+
+#[component]
 pub fn ChessBoard() -> impl IntoView {
     let (chess, set_chess) = signal(Chess::default());
-    let current_color = move || chess.read().turn();
+    let current_color = Signal::derive(move || chess.read().turn());
 
     let (selected_piece, set_selected_piece) = signal::<Option<(Square, Piece)>>(None);
 
@@ -47,18 +121,15 @@ pub fn ChessBoard() -> impl IntoView {
                     }
                 };
 
-                let rotated_square = square.rotate_270();
-                let file = rotated_square.file().to_u32() + 1;
-                let rank = rotated_square.rank().to_u32() + 1;
-
                 view! {
-                    <img
-                        class="transition-transform duration-300 ease-in-out"
-                        style:grid-column=rank.to_string()
-                        style:grid-row=file.to_string()
-                        class=("rotate-180", move || current_color().is_black())
-                        src=piece_to_img(&piece)
+                    <ChessPiece
+                        piece
+                        position=square
                         on:click=on_click
+
+                        attr:class=move || {
+                            if current_color.read().is_white() { "rotate-180" } else { "" }
+                        }
                     />
                 }
             })
@@ -82,8 +153,10 @@ pub fn ChessBoard() -> impl IntoView {
             .filter(|m| {
                 log!("legal move {m:?}");
                 match m {
-                    Move::Normal { from, .. } | Move::EnPassant { from, .. } => *from == square,
-
+                    Move::Normal {
+                        from, promotion, ..
+                    } => *from == square && promotion.is_none(),
+                    Move::EnPassant { from, .. } => *from == square,
                     Move::Castle { king, .. } => *king == square,
                     Move::Put { .. } => false,
                 }
@@ -103,19 +176,81 @@ pub fn ChessBoard() -> impl IntoView {
                     move_chess(m);
                 };
 
-                let s_rotated = s.rotate_270();
-                let file = s_rotated.file().to_u32() + 1;
-                let rank = s_rotated.rank().to_u32() + 1;
-                Either::Right(view! {
-                    <div
-                        class="m-4 rounded-4xl bg-zinc-700/50 z-30"
-                        style:grid-column=rank.to_string()
-                        style:grid-row=file.to_string()
-                        on:click=on_click
-                    />
-                })
+                Either::Right(view! { <Indicator square=s on:click=on_click /> })
             })
             .collect_view();
+
+        let promotion_indicators = chess
+            .get()
+            .promotion_moves()
+            .into_iter()
+            .filter(|m| match m {
+                Move::Normal {
+                    role,
+                    from,
+                    capture,
+                    to,
+                    promotion,
+                } => *from == square && promotion.expect("lol, this cant happen") == Role::Queen,
+                _ => false,
+            })
+            .map(|m| {
+                let s = match m {
+                    Move::Normal { to, .. } => to,
+                    _ => return Either::Left(()),
+                };
+
+                let pieces = chess
+                    .read()
+                    .promotion_moves()
+                    .iter()
+                    .filter_map(|m| match m {
+                        Move::Normal {
+                            from,
+                            to,
+                            promotion,
+                            ..
+                        } => {
+                            if *from == square && *to == s {
+                                *promotion
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
+                    })
+                    .map(|r| Piece {
+                        color: current_color.get(),
+                        role: r,
+                    })
+                    .collect::<Vec<_>>();
+
+                let on_click = move |_| {};
+
+                let on_selected = Callback::new(move |r: Role| {
+                    if let Move::Normal {
+                        role,
+                        from,
+                        capture,
+                        to,
+                        promotion,
+                    } = m
+                    {
+                        Move::Normal {
+                            role,
+                            from,
+                            capture,
+                            to,
+                            promotion: Some(r),
+                        }
+                    }
+                });
+
+                Either::Right(view! {
+                    <Indicator square=s on:click=on_click />
+                    <ChooseRole position=m.to() pieces on_selected />
+                })
+            });
 
         Either::Right(indicators)
     };
@@ -123,7 +258,7 @@ pub fn ChessBoard() -> impl IntoView {
     view! {
         <div
             class="bg-[url(/board.png)] w-160 h-160 grid-cols-8 grid-rows-8 grid bg-contain transition-transform duration-300 ease-in-out rounded-md"
-            class=("rotate-180", move || current_color().is_black())
+            class=("rotate-180", move || current_color.read().is_white())
         >
             {move_indicators}
             {pieces}
