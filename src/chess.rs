@@ -195,6 +195,8 @@ pub fn ChessBoard() -> impl IntoView {
                 _ => false,
             })
             .map(|m| {
+                let (visible, set_visible) = signal(false);
+
                 let s = match m {
                     Move::Normal { to, .. } => to,
                     _ => return Either::Left(()),
@@ -233,22 +235,22 @@ pub fn ChessBoard() -> impl IntoView {
                         from,
                         capture,
                         to,
-                        promotion,
+                        promotion: _,
                     } = m
                     {
-                        Move::Normal {
+                        move_chess(Move::Normal {
                             role,
                             from,
                             capture,
                             to,
                             promotion: Some(r),
-                        }
+                        });
                     }
                 });
 
                 Either::Right(view! {
                     <Indicator square=s on:click=on_click />
-                    <ChooseRole position=m.to() pieces on_selected />
+                    <ChooseRole position=m.to() pieces on_selected style:display attr:class=move >
                 })
             });
 
