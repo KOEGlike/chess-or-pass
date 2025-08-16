@@ -30,31 +30,21 @@ fn ChooseRole(
 
     let pieces = pieces
         .into_iter()
-        .enumerate()
-        .map(|(i, piece)| {
-            let col = file_start + i as f32;
+        .map(| piece| {
             let on_click = move |_| on_selected.run(piece.role);
-            view! {
-                <ChessPiece
-                    piece
-                    style:grid-column=col.to_string()
-                    style:grid-row=rank.to_string()
-                    attr:class="z-50"
-                    on:click=on_click
-                />
-            }
+            view! { <ChessPiece piece attr:class="z-50" on:click=on_click /> }
         })
         .collect_view();
 
     let end = { file_start + pieces.len() as f32 }.to_string();
     view! {
         <div
-            class="bg-white rounded-md m-1 z-40"
+            class="bg-white rounded-md m-1 z-40 flex justify-between content-center m-1"
             style:grid-column-start=file_start.to_string()
             style:grid-column-end=end
             style:grid-row=rank.to_string()
         >
-            "lol"
+            {pieces}
         </div>
     }
 }
@@ -227,7 +217,7 @@ pub fn ChessBoard() -> impl IntoView {
                     })
                     .collect::<Vec<_>>();
 
-                let on_click = move |_| {};
+                let on_click = move |_| {set_visible.set(true)};
 
                 let on_selected = Callback::new(move |r: Role| {
                     if let Move::Normal {
@@ -250,11 +240,26 @@ pub fn ChessBoard() -> impl IntoView {
 
                 Either::Right(view! {
                     <Indicator square=s on:click=on_click />
-                    <ChooseRole position=m.to() pieces on_selected style:display attr:class=move >
+                    <ChooseRole
+                        position=m.to()
+                        pieces
+                        on_selected
+                        style:display=move || {
+                            match visible.get() {
+                                true => "",
+                                false => "none",
+                            }
+                        }
+                        {..}
+                        class=("rotate-180", move || current_color.read().is_white())
+                    />
                 })
-            });
+            }).collect_view();
 
-        Either::Right(indicators)
+        Either::Right(view! {
+            {indicators}
+            {promotion_indicators}
+        })
     };
 
     view! {
