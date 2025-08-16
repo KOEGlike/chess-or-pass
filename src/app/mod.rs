@@ -7,6 +7,7 @@ use leptos_router::{
 
 mod chess;
 mod login_register;
+mod general_components;
 
 use chess::ChessBoard;
 use login_register::LoginRegisterPage;

@@ -1,5 +1,4 @@
 use leptos::either::Either;
-use leptos::html::P;
 use leptos::logging::*;
 use leptos::prelude::*;
 use shakmaty::san::San;
@@ -239,7 +238,7 @@ fn Indicator(square: Square) -> impl IntoView {
     let rank = square.rank().to_u32() + 1;
     view! {
         <div class="p-4" style:grid-column=file.to_string() style:grid-row=rank.to_string()>
-            <div class="rounded-4xl bg-zinc-700/50 z-30 rotate-180 h-full w-full" />
+            <div class="rounded-full bg-zinc-700/50 z-30 rotate-180 h-full w-full" />
         </div>
     }
 }
