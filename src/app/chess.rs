@@ -7,43 +7,42 @@ use shakmaty::*;
 
 
 #[component]
-pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:WriteSignal<Vec<San>>) -> impl IntoView {
+pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:RwSignal<Vec<San>>) -> impl IntoView {
     let (chess, set_chess) = signal(Chess::default());
     let current_color = Signal::derive(move || chess.read().turn());
 
     let (selected_piece, set_selected_piece) = signal::<Option<(Square, Piece)>>(None);
 
-    let not_vec=vec![];
 
-    Effect::new(move |c_p: Option<Chess>| {
+    Effect::new(move |_| {
         let c =chess.get();
         on_finished(c.outcome());
         set_selected_piece.set(None);
-
-        
-        
     });
 
-    let move_chess = move |m: Move| {
-        let next = match chess.get().play(m) {
+    
+        
+    let move_chess = {move |m: Move| {
+        let c=chess.get();
+        let next = match c.play(m) {
             
             Err(e) => {
                 error!("got error from chess: {e}");
                 return;
             }
-            Ok(c) => c,
+            Ok(c) => {
+                notation.write().push(San::from_move(&c,m));
+                c},
         };
         set_chess.set(next);
-    };
+    }};
+    
 
     let pieces = move || {
-        chess
-            .read()
-            .board()
-            .iter()
-            .map(|(square, piece)| {
-                let on_click = move |_| {
-                    log!("clicked on {square:?}");
+        let board=chess.read().board().clone();
+
+        let on_click=move|square, piece|{
+            log!("clicked on {square:?}");
                     match selected_piece.get() {
                         Some((selected_square, _selected_piece)) => {
                             if selected_square == square {
@@ -55,18 +54,9 @@ pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:WriteSignal
                         }
                         None => set_selected_piece.set(Some((square, piece))),
                     }
-                };
+        };
 
-                view! {
-                    <ChessPiece
-                        piece
-                        position=square
-                        on:click=on_click
-                        class:rotate-180=move || { current_color.read().is_white() }
-                    />
-                }
-            })
-            .collect_view()
+       view! { <Pieces board current_color on_click /> }
     };
 
     let move_indicators = move || {
@@ -124,7 +114,7 @@ pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:WriteSignal
                     capture,
                     to,
                     promotion,
-                } => *from == square && promotion.expect("lol, this cant happen") == Role::Queen,
+                } => *from == square && promotion.expect("lol, this cant happen") == Role::Knight,
                 _ => false,
             })
             .map(|m| {
@@ -215,6 +205,29 @@ pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:WriteSignal
 
         </div>
     }
+}
+
+#[component]
+fn Pieces(board:Board, current_color:Signal<Color>, on_click:impl Fn(Square, Piece) + 'static + std::marker::Send + std::marker::Sync)->impl IntoView{
+    let on_click=move|(square, piece)|on_click(square,piece);
+    let on_click=Callback::new(on_click);
+
+    board            .into_iter()
+            .map(|(square, piece)| {
+                let on_click = move |_| {
+                    on_click.run((square,piece));
+                };
+
+                view! {
+                    <ChessPiece
+                        piece
+                        position=square
+                        on:click=on_click
+                        class:rotate-180=move || { current_color.read().is_white() }
+                    />
+                }
+            })
+            .collect_view()
 }
 
 
