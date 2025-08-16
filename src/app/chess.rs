@@ -7,7 +7,7 @@ use shakmaty::*;
 
 
 #[component]
-pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:RwSignal<Vec<San>>) -> impl IntoView {
+pub fn ChessBoard(on_finished: impl Fn(KnownOutcome ) + 'static, notation:RwSignal<Vec<San>>) -> impl IntoView {
     let (chess, set_chess) = signal(Chess::default());
     let current_color = Signal::derive(move || chess.read().turn());
 
@@ -16,7 +16,9 @@ pub fn ChessBoard(on_finished: impl Fn(Outcome ) + 'static, notation:RwSignal<Ve
 
     Effect::new(move |_| {
         let c =chess.get();
-        on_finished(c.outcome());
+        if let Outcome::Known(k) = c.outcome() {
+            on_finished(k);
+        }
         set_selected_piece.set(None);
     });
 
