@@ -5,7 +5,12 @@ use leptos_router::{
     StaticSegment,
 };
 
-use crate::chess::ChessBoard;
+mod chess;
+mod login_register;
+
+use chess::ChessBoard;
+use login_register::LoginRegisterPage;
+
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -38,7 +43,7 @@ pub fn App() -> impl IntoView {
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=ChessBoard />
+                    <Route path=StaticSegment("") view=LoginRegisterPage />
                 </Routes>
             </main>
         </Router>
