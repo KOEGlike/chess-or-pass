@@ -42,7 +42,7 @@ pub fn App() -> impl IntoView {
         <Title text="Welcome to Leptos" />
 
         <Router>
-            <main class="w-screen h-screen">
+            <main class="w-screen h-screen font-sans">
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=LoginRegisterPage />
                 </Routes>

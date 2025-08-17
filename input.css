@@ -1,7 +1,15 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: "Chess Sans";
+    display: swap;
+    src: url("/fonts/chess-sans-700.woff2");
+}
+
 @theme {
     --color-background: #312e2b;
     --color-primary: #81b64c;
     --color-primary-variant: #45753c;
+
+    --font-sans: "Chess Sans", sans-serif;
 }
