@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos::logging::*;
 use shakmaty::san::San;
-use crate::app::chess::ChessBoard;
+use crate::app::{chess::ChessBoard, general_components::*};
 
 #[component]
 pub fn LoginRegisterPage() -> impl IntoView {
@@ -16,6 +16,7 @@ pub fn LoginRegisterPage() -> impl IntoView {
     view! {
         <div class="bg-background flex h-full w-full items-center justify-center">
             <ChessBoard on_finished notation />
+            <ButtonPrimary>"d"</ButtonPrimary>
         </div>
     }
 }
