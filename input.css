@@ -8,8 +8,14 @@
 
 @theme {
     --color-background: #312e2b;
+
     --color-primary: #81b64c;
-    --color-primary-variant: #45753c;
+    --color-primary-hover:#a3d160;
+
+    --color-secondary:#262422;
+    --color-secondary-hover:#3a3835;
+
+    --color-overlay-shadow: #00000066;
 
     --font-sans: "Chess Sans", sans-serif;
 }

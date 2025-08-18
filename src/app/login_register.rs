@@ -16,7 +16,7 @@ pub fn LoginRegisterPage() -> impl IntoView {
     view! {
         <div class="bg-background flex h-full w-full items-center justify-center">
             <ChessBoard on_finished notation />
-            <ButtonPrimary {..} class="h-12 w-36">
+            <ButtonPrimary {..} class="h-12 w-36 rounded-3xl">
                 "d"
             </ButtonPrimary>
         </div>
