@@ -4,60 +4,60 @@ use leptos::prelude::*;
 use shakmaty::san::San;
 use shakmaty::*;
 
-
 #[component]
-pub fn ChessBoard(on_finished: impl Fn(KnownOutcome ) + 'static, notation:RwSignal<Vec<San>>) -> impl IntoView {
+pub fn ChessBoard(
+    on_finished: impl Fn(KnownOutcome) + 'static,
+    notation: RwSignal<Vec<San>>,
+) -> impl IntoView {
     let (chess, set_chess) = signal(Chess::default());
     let current_color = Signal::derive(move || chess.read().turn());
 
     let (selected_piece, set_selected_piece) = signal::<Option<(Square, Piece)>>(None);
 
-
     Effect::new(move |_| {
-        let c =chess.get();
+        let c = chess.get();
         if let Outcome::Known(k) = c.outcome() {
             on_finished(k);
         }
         set_selected_piece.set(None);
     });
 
-    
-        
-    let move_chess = {move |m: Move| {
-        let c=chess.get();
-        let next = match c.play(m) {
-            
-            Err(e) => {
-                error!("got error from chess: {e}");
-                return;
-            }
-            Ok(c) => {
-                notation.write().push(San::from_move(&c,m));
-                c},
-        };
-        set_chess.set(next);
-    }};
-    
+    let move_chess = {
+        move |m: Move| {
+            let c = chess.get();
+            let next = match c.play(m) {
+                Err(e) => {
+                    error!("got error from chess: {e}");
+                    return;
+                }
+                Ok(c) => {
+                    notation.write().push(San::from_move(&c, m));
+                    c
+                }
+            };
+            set_chess.set(next);
+        }
+    };
 
     let pieces = move || {
-        let board=chess.read().board().clone();
+        let board = chess.read().board().clone();
 
-        let on_click=move|square, piece|{
+        let on_click = move |square, piece| {
             log!("clicked on {square:?}");
-                    match selected_piece.get() {
-                        Some((selected_square, _selected_piece)) => {
-                            if selected_square == square {
-                                log!("set none");
-                                set_selected_piece.set(None);
-                                return;
-                            }
-                            set_selected_piece.set(Some((square, piece)))
-                        }
-                        None => set_selected_piece.set(Some((square, piece))),
+            match selected_piece.get() {
+                Some((selected_square, _selected_piece)) => {
+                    if selected_square == square {
+                        log!("set none");
+                        set_selected_piece.set(None);
+                        return;
                     }
+                    set_selected_piece.set(Some((square, piece)))
+                }
+                None => set_selected_piece.set(Some((square, piece))),
+            }
         };
 
-       view! { <Pieces board current_color on_click /> }
+        view! { <Pieces board current_color on_click /> }
     };
 
     let move_indicators = move || {
@@ -151,7 +151,7 @@ pub fn ChessBoard(on_finished: impl Fn(KnownOutcome ) + 'static, notation:RwSign
                     })
                     .collect::<Vec<_>>();
 
-                let on_click = move |_| {set_visible.set(true)};
+                let on_click = move |_| set_visible.set(true);
 
                 let on_selected = move |r: Role| {
                     if let Move::Normal {
@@ -188,7 +188,8 @@ pub fn ChessBoard(on_finished: impl Fn(KnownOutcome ) + 'static, notation:RwSign
                         class:rotate-180=move || current_color.read().is_white()
                     />
                 })
-            }).collect_view();
+            })
+            .collect_view();
 
         Either::Right(view! {
             {indicators}
@@ -209,28 +210,32 @@ pub fn ChessBoard(on_finished: impl Fn(KnownOutcome ) + 'static, notation:RwSign
 }
 
 #[component]
-fn Pieces(board:Board, current_color:Signal<Color>, on_click:impl Fn(Square, Piece) + 'static + std::marker::Send + std::marker::Sync)->impl IntoView{
-    let on_click=move|(square, piece)|on_click(square,piece);
-    let on_click=Callback::new(on_click);
+fn Pieces(
+    board: Board,
+    current_color: Signal<Color>,
+    on_click: impl Fn(Square, Piece) + 'static + std::marker::Send + std::marker::Sync,
+) -> impl IntoView {
+    let on_click = move |(square, piece)| on_click(square, piece);
+    let on_click = Callback::new(on_click);
 
-    board            .into_iter()
-            .map(|(square, piece)| {
-                let on_click = move |_| {
-                    on_click.run((square,piece));
-                };
+    board
+        .into_iter()
+        .map(|(square, piece)| {
+            let on_click = move |_| {
+                on_click.run((square, piece));
+            };
 
-                view! {
-                    <ChessPiece
-                        piece
-                        position=square
-                        on:click=on_click
-                        class:rotate-180=move || { current_color.read().is_white() }
-                    />
-                }
-            })
-            .collect_view()
+            view! {
+                <ChessPiece
+                    piece
+                    position=square
+                    on:click=on_click
+                    class:rotate-180=move || { current_color.read().is_white() }
+                />
+            }
+        })
+        .collect_view()
 }
-
 
 #[component]
 fn Indicator(square: Square) -> impl IntoView {
@@ -254,11 +259,11 @@ fn ChooseRole(
 
     let file_start = file as f32 - pieces.len() as f32 / 2.0;
 
-    let on_selected=Callback::new(on_selected);
+    let on_selected = Callback::new(on_selected);
 
     let pieces = pieces
         .into_iter()
-        .map(| piece| {
+        .map(|piece| {
             let on_click = move |_| on_selected.run(piece.role);
             view! { <ChessPiece piece class:z-50=true on:click=on_click /> }
         })

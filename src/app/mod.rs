@@ -1,17 +1,16 @@
 use leptos::prelude::*;
-use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
+use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
-    components::{Route, Router, Routes},
     StaticSegment,
+    components::{Route, Router, Routes},
 };
 
 mod chess;
-mod login_register;
 mod general_components;
+mod login_register;
 
 use chess::ChessBoard;
 use login_register::LoginRegisterPage;
-
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
