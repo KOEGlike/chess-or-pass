@@ -203,7 +203,7 @@ pub fn ChessBoard(
 
     view! {
         <div
-            class="grid grid-cols-8 bg-contain rounded-md transition-transform duration-300 ease-in-out bg-[url(/board.png)] w-160 h-160 grid-rows-8"
+            class="grid grid-cols-8 bg-contain rounded-md transition-transform duration-300 ease-in-out bg-[url(/board.png)] w-180 h-180 grid-rows-8"
             class:rotate-180=move || current_color.read().is_white()
         >
             {move_indicators}

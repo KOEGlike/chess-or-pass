@@ -6,6 +6,7 @@ use leptos_router::{
 };
 
 mod chess;
+mod game_modal;
 mod register;
 
 use chess::ChessBoard;

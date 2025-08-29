@@ -1,11 +1,14 @@
 use crate::app::chess::ChessBoard;
 use leptos::either::EitherOf4;
+use leptos::ev::error;
 use leptos::html;
 use leptos::logging::*;
 use leptos::prelude::*;
 use shakmaty::KnownOutcome;
 use shakmaty::fen::*;
 use shakmaty::san::*;
+
+use crate::app::game_modal::*;
 
 use crate::types::Error;
 
@@ -70,11 +73,21 @@ pub fn RegisterPage() -> impl IntoView {
                 log!("{s}");
             });
 
-            let (ended, set_ended) = signal(Option::<KnownOutcome>::Some(KnownOutcome::Draw));
+            let (ended, set_ended) = signal(Option::<KnownOutcome>::None);
 
             let on_finished = move |o: KnownOutcome| {
                 log!("ended {o:?}");
                 set_ended.set(Some(o));
+            };
+
+            let on_continue = {
+                let user_name = user_name.clone();
+                move |_| {
+                    set_state.set(State::PasswordConfirm {
+                        user_name: user_name.clone(),
+                        first: notation.get(),
+                    });
+                }
             };
 
             EitherOf4::B(view! {
@@ -82,24 +95,92 @@ pub fn RegisterPage() -> impl IntoView {
                     <div class="flex flex-col justify-start items-start w-full text-2xl h-fit">
                         "Hi " {user_name}
                         <span class="font-sans font-light">
-                            "Let's make a password! Play a game of chess with yourself until the game is over"
+                            "Let's make a password! Play a game of chess with yourself until the game is over! Remember the game well!"
                         </span>
                     </div>
                     <div class="flex flex-col justify-center items-center w-full h-full">
                         <ChessBoard on_finished notation />
-                        <dialog open=move || ended.with(Option::is_some)>
-                            <div class="flex flex-col gap-2.5 justify-start items-center p-5 text-3xl text-white rounded-lg bg-background/95">
-                                "Game ended!"
-                                <button class="p-4 w-full text-2xl button-primary">
-                                    "Continue!"
-                                </button>
-                            </div>
-                        </dialog>
+                        <GameEndModal ended on_continue />
                     </div>
                 </div>
             })
         }
-        State::PasswordConfirm { user_name, first } => EitherOf4::C(()),
+        State::PasswordConfirm { user_name, first } => {
+            let notation: RwSignal<Vec<(San, Fen)>> = RwSignal::new(vec![]);
+
+            Effect::new(move |_| {
+                let s = notation
+                    .get()
+                    .into_iter()
+                    .map(|e| format!("san {} fen {}", e.0, e.1))
+                    .collect::<Vec<String>>()
+                    .join(" \n");
+                log!("{s}");
+            });
+
+            let matches = {
+                let first = first.clone();
+                move || {
+                    let notation = notation.get();
+                    let last_element = match notation.last() {
+                        Some(e) => e,
+                        None => return true,
+                    };
+
+                    let first_element = match first.get(notation.len() - 1) {
+                        Some(e) => e,
+                        None => return false,
+                    };
+
+                    last_element == first_element
+                }
+            };
+
+            let (ended, set_ended) = signal(Option::<KnownOutcome>::None);
+
+            let on_finished = move |o: KnownOutcome| {
+                log!("ended {o:?}");
+                set_ended.set(Some(o));
+            };
+
+            let on_continue = {
+                let user_name = user_name.clone();
+                let first = first.clone();
+                move |_| {
+                    set_state.set(State::Done {
+                        user_name: user_name.clone(),
+                        first: first.clone(),
+                        second: notation.get(),
+                    });
+                }
+            };
+
+            let on_restart = move |_| {
+                set_state.set(state.get());
+            };
+
+            EitherOf4::C(view! {
+                <div class="flex flex-col gap-2.5 justify-start items-center w-full h-full">
+                    <div class="flex flex-col justify-start items-start w-full text-2xl h-fit">
+                        "Hi " {user_name}
+                        <span class="font-sans font-light">
+                            "Now play the same game of chess again!"
+                        </span>
+                    </div>
+                    <div class="flex flex-col justify-center items-center w-full h-full">
+                        <ChessBoard on_finished notation />
+                        <GameEndModal ended on_continue />
+                        <GameModal
+                            visible=Signal::derive(move || !matches())
+                            main_text="Move doesn't match".to_string()
+                            sub_text="Please try again".to_string()
+                            button_text="Retry".to_string()
+                            on_click=on_restart
+                        />
+                    </div>
+                </div>
+            })
+        }
         State::Done {
             user_name,
             first,
