@@ -246,12 +246,8 @@ fn Indicator(square: Square) -> impl IntoView {
     let file = square.file().to_u32() + 1;
     let rank = square.rank().to_u32() + 1;
     view! {
-        <div
-            class="flex justify-center items-center p-4"
-            style:grid-column=file.to_string()
-            style:grid-row=rank.to_string()
-        >
-            <div class="z-40 w-full h-full rounded-full rotate-180 bg-zinc-700/50" />
+        <div class="p-4" style:grid-column=file.to_string() style:grid-row=rank.to_string()>
+            <div class="relative z-40 w-full h-full rounded-full rotate-180 bg-zinc-700/50" />
         </div>
     }
 }
