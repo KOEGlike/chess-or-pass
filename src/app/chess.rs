@@ -203,7 +203,7 @@ pub fn ChessBoard(
 
     view! {
         <div
-            class="bg-[url(/board.png)] w-160 h-160 grid-cols-8 grid-rows-8 grid bg-contain transition-transform duration-300 ease-in-out rounded-md"
+            class="grid grid-cols-8 bg-contain rounded-md transition-transform duration-300 ease-in-out bg-[url(/board.png)] w-160 h-160 grid-rows-8"
             class:rotate-180=move || current_color.read().is_white()
         >
             {move_indicators}
@@ -246,8 +246,12 @@ fn Indicator(square: Square) -> impl IntoView {
     let file = square.file().to_u32() + 1;
     let rank = square.rank().to_u32() + 1;
     view! {
-        <div class="p-4" style:grid-column=file.to_string() style:grid-row=rank.to_string()>
-            <div class="rounded-full bg-zinc-700/50 z-30 rotate-180 h-full w-full" />
+        <div
+            class="flex justify-center items-center p-4"
+            style:grid-column=file.to_string()
+            style:grid-row=rank.to_string()
+        >
+            <div class="z-40 w-full h-full rounded-full rotate-180 bg-zinc-700/50" />
         </div>
     }
 }
@@ -276,7 +280,7 @@ fn ChooseRole(
     let end = { file_start + pieces.len() as f32 }.to_string();
     view! {
         <div
-            class="bg-white rounded-md p-1 z-40 flex justify-between content-center"
+            class="flex z-50 justify-between content-center p-1 bg-white rounded-md"
             style:grid-column-start=file_start.to_string()
             style:grid-column-end=end
             style:grid-row=rank.to_string()

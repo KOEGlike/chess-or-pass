@@ -17,7 +17,7 @@
 
     --color-overlay-shadow: #00000066;
 
-    --font-sans: "Chess Sans", sans-serif;
+    --font-chess-sans: "Chess Sans", sans-serif;
 }
 
 @layer components {
@@ -34,7 +34,7 @@
     }
 
     input {
-        @apply text-xl rounded-md border-[0.1rem] border-[#ffffff1a] w-44 h-5 bg-[#ffffff14] text-white p-4 hover:border-[#ffffff40] focus:border-[#ffffff50] transition-all duration-200;
+        @apply p-1 font-light font-sans text-xl rounded-sm border-[0.1rem] border-[#ffffff1a] bg-[#ffffff14] text-zinc-400 hover:border-[#ffffff40] focus:border-[#ffffff50] transition-all duration-200;
     }
 
     input:focus,
@@ -42,5 +42,11 @@
         outline: 0;
         box-shadow: none;
     }
+
+    dialog {
+        @apply w-full h-full flex items-center justify-center absolute top-0 left-0;
+        background: none;
+    }
+
 
 }

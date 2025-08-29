@@ -29,7 +29,8 @@
     "rust-analyzer.rustfmt.overrideCommand": [
         "leptosfmt",
         "--stdin",
-        "--rustfmt"
+        "--rustfmt",
+        "--experimental-tailwind"
     ],
     "editor.formatOnSave": true,
     "rust-analyzer.procMacro.ignored": {

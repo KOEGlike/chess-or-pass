@@ -1,12 +1,12 @@
 use super::Error;
 
-#[cfg(feature ="ssr")]
+#[cfg(feature = "ssr")]
 #[derive(Clone, Debug)]
 pub struct Db {
     pub pool: sqlx::PgPool,
     pub url: String,
 }
-#[cfg(feature ="ssr")]
+#[cfg(feature = "ssr")]
 impl Db {
     pub async fn new(url: String) -> Result<Self, Error> {
         println!("creating db pool with url: {} .......", url);
