@@ -31,9 +31,7 @@
         "--stdin",
         "--rustfmt"
     ],
-    "[rust]": {
-        "editor.formatOnSave": true
-    },
+    "editor.formatOnSave": true,
     "rust-analyzer.procMacro.ignored": {
         "leptos_macro": [
             "component",

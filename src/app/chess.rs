@@ -1,13 +1,14 @@
 use leptos::either::Either;
 use leptos::logging::*;
 use leptos::prelude::*;
-use shakmaty::san::San;
+use shakmaty::fen::*;
+use shakmaty::san::*;
 use shakmaty::*;
 
 #[component]
 pub fn ChessBoard(
     on_finished: impl Fn(KnownOutcome) + 'static,
-    notation: RwSignal<Vec<San>>,
+    notation: RwSignal<Vec<(San, Fen)>>,
 ) -> impl IntoView {
     let (chess, set_chess) = signal(Chess::default());
     let current_color = Signal::derive(move || chess.read().turn());
@@ -31,7 +32,10 @@ pub fn ChessBoard(
                     return;
                 }
                 Ok(c) => {
-                    notation.write().push(San::from_move(&c, m));
+                    let fen = Fen::from_position(&c, EnPassantMode::Always);
+                    let san = San::from_move(&c, m);
+
+                    notation.write().push((san, fen));
                     c
                 }
             };
@@ -75,7 +79,7 @@ pub fn ChessBoard(
             .legal_moves()
             .into_iter()
             .filter(|m| {
-                log!("legal move {m:?}");
+                // log!("legal move {m:?}");
                 match m {
                     Move::Normal {
                         from, promotion, ..
@@ -94,7 +98,7 @@ pub fn ChessBoard(
                     _ => return Either::Left(()),
                 };
 
-                log!("sq: {s:?}");
+                // log!("sq: {s:?}");
 
                 let on_click = move |_| {
                     move_chess(m);

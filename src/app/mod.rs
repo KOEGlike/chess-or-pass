@@ -1,16 +1,15 @@
 use leptos::prelude::*;
-use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
+use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
-    StaticSegment,
     components::{Route, Router, Routes},
+    StaticSegment,
 };
 
 mod chess;
-mod general_components;
-mod login_register;
+mod register;
 
 use chess::ChessBoard;
-use login_register::LoginRegisterPage;
+use register::RegisterPage;
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -41,9 +40,9 @@ pub fn App() -> impl IntoView {
         <Title text="Welcome to Leptos" />
 
         <Router>
-            <main class="w-screen h-screen font-sans">
+            <main class="w-screen h-screen font-sans bg-background">
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=LoginRegisterPage />
+                    <Route path=StaticSegment("") view=RegisterPage />
                 </Routes>
             </main>
         </Router>

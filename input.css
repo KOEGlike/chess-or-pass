@@ -10,12 +10,37 @@
     --color-background: #312e2b;
 
     --color-primary: #81b64c;
-    --color-primary-hover:#a3d160;
+    --color-primary-hover: #a3d160;
 
-    --color-secondary:#262422;
-    --color-secondary-hover:#3a3835;
+    --color-secondary: #262422;
+    --color-secondary-hover: #3a3835;
 
     --color-overlay-shadow: #00000066;
 
     --font-sans: "Chess Sans", sans-serif;
+}
+
+@layer components {
+    button {
+        @apply rounded-sm flex items-center justify-center text-white shadow-[inset_0px_-0.35rem_0px_0px] shadow-overlay-shadow;
+    }
+
+    .button-primary {
+        @apply bg-primary hover:bg-primary-hover;
+    }
+
+    .button-secondary {
+        @apply bg-secondary hover:bg-secondary-hover;
+    }
+
+    input {
+        @apply text-xl rounded-md border-[0.1rem] border-[#ffffff1a] w-44 h-5 bg-[#ffffff14] text-white p-4 hover:border-[#ffffff40] focus:border-[#ffffff50] transition-all duration-200;
+    }
+
+    input:focus,
+    input:hover {
+        outline: 0;
+        box-shadow: none;
+    }
+
 }
