@@ -28,7 +28,9 @@ enum State {
 
 #[component]
 pub fn RegisterPage() -> impl IntoView {
-    let (state, set_state) = signal(State::Password { user_name: "lol".to_string() });
+    let (state, set_state) = signal(State::Password {
+        user_name: "lol".to_string(),
+    });
 
     let current_view = move || match state.get() {
         State::Username => {
@@ -67,8 +69,6 @@ pub fn RegisterPage() -> impl IntoView {
                     .join(" \n");
                 log!("{s}");
             });
-
-            
 
             let (ended, set_ended) = signal(Option::<KnownOutcome>::Some(KnownOutcome::Draw));
 
