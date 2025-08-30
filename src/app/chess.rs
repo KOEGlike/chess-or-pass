@@ -32,7 +32,7 @@ pub fn ChessBoard(
                     return;
                 }
                 Ok(c) => {
-                    let fen = Fen::from_position(&c, EnPassantMode::Always);
+                    let fen = Fen::from_position(&c, EnPassantMode::Legal);
                     let san = San::from_move(&c, m);
 
                     notation.write().push((san, fen));

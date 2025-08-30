@@ -1,12 +1,17 @@
 use crate::app::chess::ChessBoard;
+use gloo::storage::Storage;
 use leptos::either::EitherOf4;
-use leptos::ev::error;
-use leptos::html;
 use leptos::logging::*;
 use leptos::prelude::*;
-use shakmaty::KnownOutcome;
+use leptos_router::hooks::use_navigate;
+use leptos_router::NavigateOptions;
+use sha2::Digest;
+use sha2::Sha256;
 use shakmaty::fen::*;
 use shakmaty::san::*;
+use shakmaty::EnPassantMode;
+use shakmaty::KnownOutcome;
+use shakmaty::Position;
 
 use crate::app::game_modal::*;
 
@@ -20,20 +25,17 @@ enum State {
     },
     PasswordConfirm {
         user_name: String,
-        first: Vec<(San, Fen)>,
+        first_attempt: Vec<(San, Fen)>,
     },
     Done {
         user_name: String,
-        first: Vec<(San, Fen)>,
-        second: Vec<(San, Fen)>,
+        password: Vec<(San, Fen)>,
     },
 }
 
 #[component]
 pub fn RegisterPage() -> impl IntoView {
-    let (state, set_state) = signal(State::Password {
-        user_name: "lol".to_string(),
-    });
+    let (state, set_state) = signal(State::Username);
 
     let current_view = move || match state.get() {
         State::Username => {
@@ -85,7 +87,7 @@ pub fn RegisterPage() -> impl IntoView {
                 move |_| {
                     set_state.set(State::PasswordConfirm {
                         user_name: user_name.clone(),
-                        first: notation.get(),
+                        first_attempt: notation.get(),
                     });
                 }
             };
@@ -105,7 +107,10 @@ pub fn RegisterPage() -> impl IntoView {
                 </div>
             })
         }
-        State::PasswordConfirm { user_name, first } => {
+        State::PasswordConfirm {
+            user_name,
+            first_attempt,
+        } => {
             let notation: RwSignal<Vec<(San, Fen)>> = RwSignal::new(vec![]);
 
             Effect::new(move |_| {
@@ -119,7 +124,7 @@ pub fn RegisterPage() -> impl IntoView {
             });
 
             let matches = {
-                let first = first.clone();
+                let first = first_attempt.clone();
                 move || {
                     let notation = notation.get();
                     let last_element = match notation.last() {
@@ -145,13 +150,17 @@ pub fn RegisterPage() -> impl IntoView {
 
             let on_continue = {
                 let user_name = user_name.clone();
-                let first = first.clone();
+                let first_attempt = first_attempt.clone();
+
                 move |_| {
-                    set_state.set(State::Done {
-                        user_name: user_name.clone(),
-                        first: first.clone(),
-                        second: notation.get(),
-                    });
+                    if first_attempt == notation.get() {
+                        set_state.set(State::Done {
+                            user_name: user_name.clone(),
+                            password: notation.get(),
+                        });
+                    } else {
+                        error!("Passwords do not match");
+                    }
                 }
             };
 
@@ -183,9 +192,42 @@ pub fn RegisterPage() -> impl IntoView {
         }
         State::Done {
             user_name,
-            first,
-            second,
-        } => EitherOf4::D(()),
+            password,
+        } => {
+            let result =
+                LocalResource::new(move || create_user(user_name.clone(), password.clone()));
+
+            let on_home = move |_| {
+                use_navigate()("/", NavigateOptions::default());
+            };
+
+            EitherOf4::D(view! {
+                <Suspense>
+                    {move || Suspend::new(async move {
+                        let result = result.await;
+                        let (main_text, sub_text) = match &result {
+                            Ok(_) => ("User created".to_string(), "Yipeee 😁😁".to_string()),
+                            Err(e) => ("Something went wrong".to_string(), e.to_string()),
+                        };
+                        if let Ok(user_id) = &result {
+                            if let Err(e) = gloo::storage::LocalStorage::set("id", user_id) {
+                                error!("Could not store user id in local storage: {e}");
+                            }
+                        }
+
+                        view! {
+                            <GameModal
+                                visible=true
+                                main_text=main_text
+                                sub_text=sub_text
+                                button_text="Home!"
+                                on_click=on_home
+                            />
+                        }
+                    })}
+                </Suspense>
+            })
+        }
     };
 
     view! {
@@ -196,10 +238,58 @@ pub fn RegisterPage() -> impl IntoView {
 }
 
 #[server]
-async fn test() -> Result<(), Error> {
+async fn create_user(name: String, password: Vec<(San, Fen)>) -> Result<String, Error> {
     use crate::types::AppState;
     let app_state = expect_context::<AppState>();
+
+    if !check_chess_moves(&password) {
+        return Err(Error::ImpossibleChessGame);
+    }
+
     let mut transaction = app_state.db.pool.begin().await?;
 
-    Ok(())
+    let user_id = cuid2::cuid();
+    let salt = cuid2::CuidConstructor::new().with_length(5).create_id();
+
+    let fen_string_vec = password
+        .into_iter()
+        .map(|(_san, fen)| fen.to_string() + &salt)
+        .map(|s| Sha256::digest(s.as_bytes()))
+        .map(|d| d.to_vec())
+        .collect::<Vec<_>>();
+
+    sqlx::query!(
+        r#"
+        INSERT INTO users (id, username, password, salt) VALUES ($1, $2, $3, $4)
+        "#,
+        user_id,
+        name,
+        &fen_string_vec,
+        salt
+    )
+    .execute(&mut *transaction)
+    .await?;
+
+    transaction.commit().await?;
+
+    Ok(user_id)
+}
+
+fn check_chess_moves(moves: &[(San, Fen)]) -> bool {
+    let mut pos = shakmaty::Chess::default();
+    for (san, fen) in moves {
+        let mv = match san.to_move(&pos) {
+            Ok(mv) => mv,
+            Err(_) => return false,
+        };
+        pos = match pos.play(mv) {
+            Ok(p) => p,
+            Err(_) => return false,
+        };
+        let current_fen = Fen::from_position(&pos, EnPassantMode::Legal);
+        if &current_fen != fen {
+            return false;
+        }
+    }
+    true
 }

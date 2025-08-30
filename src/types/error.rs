@@ -3,7 +3,7 @@ use leptos::{
     server_fn::{codec::JsonEncoding, error::IntoAppError},
 };
 
-#[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(thiserror::Error, Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub enum Error {
     #[error("Error from database: {0}")]
     Database(String),
@@ -21,6 +21,10 @@ pub enum Error {
     DoesNotExist(String),
     #[error("Server fn error: {0}")]
     ServerFnError(ServerFnErrorErr),
+    #[error("An impossible chess game was attempted")]
+    ImpossibleChessGame,
+    #[error("The password is incorrect")]
+    WrongPassword,
 }
 
 #[cfg(feature = "ssr")]

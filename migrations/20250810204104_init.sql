@@ -1,7 +1,8 @@
 CREATE TABLE users (
     id VARCHAR PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL
+    password bytea[] NOT NULL,
+    salt VARCHAR(100) NOT NULL
 );
 
 CREATE TYPE piece AS ENUM ('bb','bk','bn','bp','bq','br','wb','wk','wn','wp','wq','wr');

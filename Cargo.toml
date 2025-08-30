@@ -16,10 +16,12 @@ leptos_meta = { version = "0.8" }
 tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
 wasm-bindgen = { version = "=0.2.100", optional = true }
 
+itertools = "0.14"
 thiserror="2"
 tracing="0.1"
 serde="1"
 cuid2 = "0.1"
+sha2="0.10"
 sqlx = { version = "0.8", features = [
     "runtime-tokio",
     "postgres",
@@ -29,7 +31,9 @@ sqlx = { version = "0.8", features = [
 dotenvy="0.15"
 serde_json="1"
 
-shakmaty="0.29"
+shakmaty={version = "0.29", features = ["serde"]}
+
+gloo = "0.11"
 
 [features]
 hydrate = [

@@ -26,13 +26,13 @@
         "strings": true
     },
     "css.validate": false,
-    "rust-analyzer.rustfmt.overrideCommand": [
-        "leptosfmt",
-        "--stdin",
-        "--rustfmt",
-        "--experimental-tailwind"
-    ],
-    "editor.formatOnSave": true,
+    
+    "[rust]": {
+        "editor.formatOnSave": true,
+    },
+    "[css]": {
+        "editor.formatOnSave": true,
+    },
     "rust-analyzer.procMacro.ignored": {
         "leptos_macro": [
             "component",

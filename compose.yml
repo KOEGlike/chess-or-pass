@@ -1,4 +1,17 @@
 services:
+  app:
+    restart: always
+    build: .
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+       - DATABASE_URL=postgresql://localhost:5432/db?user=user1&password=${POSTGRES_PASSWORD}
+    depends_on:
+      jam-db:
+        condition: service_healthy
+        restart: true
   db:
     restart: always
     image: postgres:latest
