@@ -251,12 +251,8 @@ async fn create_user(name: String, password: Vec<(San, Fen)>) -> Result<String, 
     let user_id = cuid2::cuid();
     let salt = cuid2::CuidConstructor::new().with_length(5).create_id();
 
-    let fen_string_vec = password
-        .into_iter()
-        .map(|(_san, fen)| fen.to_string() + &salt)
-        .map(|s| Sha256::digest(s.as_bytes()))
-        .map(|d| d.to_vec())
-        .collect::<Vec<_>>();
+    let fen_hashed_vec =
+        hash_fen_with_salt(password.into_iter().map(|(_san, fen)| fen).collect(), &salt);
 
     sqlx::query!(
         r#"
@@ -264,7 +260,7 @@ async fn create_user(name: String, password: Vec<(San, Fen)>) -> Result<String, 
         "#,
         user_id,
         name,
-        &fen_string_vec,
+        &fen_hashed_vec,
         salt
     )
     .execute(&mut *transaction)
@@ -292,4 +288,12 @@ fn check_chess_moves(moves: &[(San, Fen)]) -> bool {
         }
     }
     true
+}
+
+pub fn hash_fen_with_salt(fen: Vec<Fen>, salt: &str) -> Vec<Vec<u8>> {
+    fen.into_iter()
+        .map(|f| f.to_string() + salt)
+        .map(|s| Sha256::digest(s.as_bytes()))
+        .map(|d| d.to_vec())
+        .collect::<Vec<_>>()
 }

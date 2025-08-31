@@ -12,6 +12,8 @@ services:
       jam-db:
         condition: service_healthy
         restart: true
+    volumes:
+      - ./images:/images
   db:
     restart: always
     image: postgres:latest

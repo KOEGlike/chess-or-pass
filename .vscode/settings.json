@@ -1,9 +1,11 @@
 {
     "cSpell.words": [
+        "chrono",
         "cuid",
         "dotenv",
         "dotenvy",
         "healthcheck",
+        "itertools",
         "rschess",
         "shakmaty",
         "sqlx",

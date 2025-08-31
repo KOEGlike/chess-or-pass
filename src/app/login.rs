@@ -1,22 +1,15 @@
 use crate::app::chess::ChessBoard;
+use crate::app::game_modal::*;
+use crate::types::Error;
 use gloo::storage::Storage;
 use leptos::either::EitherOf3;
-use leptos::either::EitherOf4;
 use leptos::logging::*;
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 use leptos_router::NavigateOptions;
-use sha2::Digest;
-use sha2::Sha256;
 use shakmaty::fen::*;
 use shakmaty::san::*;
-use shakmaty::EnPassantMode;
 use shakmaty::KnownOutcome;
-use shakmaty::Position;
-
-use crate::app::game_modal::*;
-
-use crate::types::Error;
 
 #[derive(Clone, Debug, PartialEq)]
 enum State {
@@ -26,7 +19,7 @@ enum State {
     },
     Done {
         user_name: String,
-        password: Vec<(San, Fen)>,
+        password: Vec<Fen>,
     },
 }
 
@@ -46,7 +39,7 @@ pub fn LoginPage() -> impl IntoView {
 
             EitherOf3::A(view! {
                 <div class="flex flex-col gap-2.5 justify-center items-center">
-                    <span class="text-5xl">"Register"</span>
+                    <span class="text-5xl">"Login"</span>
                     <input
                         placeholder="Name"
                         class="w-full"
@@ -74,7 +67,7 @@ pub fn LoginPage() -> impl IntoView {
                 move |_| {
                     set_state.set(State::Done {
                         user_name: user_name.clone(),
-                        password: notation.get(),
+                        password: notation.get().into_iter().map(|(_san, fen)| fen).collect(),
                     });
                 }
             };
@@ -141,24 +134,12 @@ pub fn LoginPage() -> impl IntoView {
                             _ => use_navigate()("/", NavigateOptions::default()),
                         };
 
-                        view! {
-                            <GameModal
-                                visible=true
-                                main_text
-                                sub_text
-                                button_text
-                                on_click
-                            />
-                        }
+                        view! { <GameModal visible=true main_text sub_text button_text on_click /> }
                     })
                 }
             };
 
-            EitherOf3::C(view! {
-                <Suspense>
-                    {suspense}
-                </Suspense>
-            })
+            EitherOf3::C(view! { <Suspense>{suspense}</Suspense> })
         }
     };
 
@@ -170,11 +151,37 @@ pub fn LoginPage() -> impl IntoView {
 }
 
 #[server]
-async fn login(name: String, password: Vec<(San, Fen)>) -> Result<String, Error> {
+async fn login(name: String, password: Vec<Fen>) -> Result<String, Error> {
+    use crate::app::register::hash_fen_with_salt;
     use crate::types::AppState;
+
     let app_state = expect_context::<AppState>();
 
     let mut transaction = app_state.db.pool.begin().await?;
+
+    let data = sqlx::query!(
+        "SELECT salt, password, id FROM users WHERE username=$1",
+        name
+    )
+    .fetch_optional(&mut *transaction)
+    .await?
+    .map(|r| (r.salt, r.password, r.id));
+
+    let (salt, db_hashed_password, user_id) = match data {
+        Some((salt, pass, id)) => (salt, pass, id),
+        None => {
+            return Err(Error::DoesNotExist(
+                "The user that you tried to login to doesn't exist".to_string(),
+            ));
+        }
+    };
+
+    let fen_hashed_vec = hash_fen_with_salt(password, &salt);
+
+    if fen_hashed_vec != db_hashed_password {
+        return Err(Error::WrongPassword);
+    }
+
     transaction.commit().await?;
-    Ok("    user_id".to_string())
+    Ok(user_id)
 }

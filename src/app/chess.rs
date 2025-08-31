@@ -304,7 +304,7 @@ fn ChessPiece(piece: Piece, #[prop(optional)] position: Option<Square>) -> impl 
     }
 }
 
-fn piece_to_img(piece: &Piece) -> &'static str {
+pub fn piece_to_img(piece: &Piece) -> &'static str {
     let color = piece.color;
     let role = piece.role;
 
