@@ -29,10 +29,17 @@ pub fn FeedPage() -> impl IntoView {
         })
     };
 
+    let on_more = move |_| {
+        set_length.update(|len| *len += PAGE_SIZE);
+    };
+
     view! {
         <div class="flex overflow-scroll flex-col gap-4 justify-start p-4 w-full h-full">
             <span class="w-full text-3xl h-fit">"Feed"</span>
             {suspense}
+            <div class="flex justify-center w-full h-fit">
+                <button on:click=on_more class="button-primary p-4 w-fit">"More!"</button>
+            </div>
         </div>
     }
 }
