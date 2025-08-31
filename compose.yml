@@ -7,9 +7,9 @@ services:
     env_file:
       - .env
     environment:
-       - DATABASE_URL=postgresql://localhost:5432/db?user=user1&password=${POSTGRES_PASSWORD}
+       - DATABASE_URL=postgresql://db:5432/db?user=user1&password=${POSTGRES_PASSWORD}
     depends_on:
-      jam-db:
+      db:
         condition: service_healthy
         restart: true
     volumes:

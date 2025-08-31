@@ -1,10 +1,11 @@
+#![recursion_limit = "256"]
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
     use axum::Router;
     use leptos::logging::log;
     use leptos::prelude::*;
-    use leptos_axum::{LeptosRoutes, generate_route_list};
+    use leptos_axum::{generate_route_list, LeptosRoutes};
 
     use chess_or_pass::{app::*, types::AppState};
 
