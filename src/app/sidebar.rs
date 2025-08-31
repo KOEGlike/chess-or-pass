@@ -6,7 +6,7 @@ use leptos_router::components::{Outlet, A};
 pub fn Sidebar() -> impl IntoView {
     view! {
         <div class="flex flex-row w-full h-full">
-            <div class="flex flex-col justify-start h-full w-32 bg-secondary">
+            <div class="flex flex-col justify-start w-32 h-full bg-secondary">
                 <A href="/play">
                     <Section text="Play" image_src="/play-icon.png" />
                 </A>

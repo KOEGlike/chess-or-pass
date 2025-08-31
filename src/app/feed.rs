@@ -11,8 +11,8 @@ use crate::types::{Error, Pieces, Vote};
 const PAGE_SIZE: i64 = 20;
 
 #[component]
-pub fn Feed() -> impl IntoView {
-    let (length, set_length) = signal::<i64>(0);
+pub fn FeedPage() -> impl IntoView {
+    let (length, set_length) = signal::<i64>(PAGE_SIZE);
 
     let votes = Resource::new(move || 0..length.get(), fetch_feed);
 
@@ -22,38 +22,49 @@ pub fn Feed() -> impl IntoView {
 
             votes
                 .into_iter()
-                .map(|vote| view! {<VoteComponent vote />})
+                .map(|vote| view! { <VoteComponent vote /> })
                 .collect_view()
         })
     };
 
     view! {
-        <div class="h-full w-full flex flex-col justify-start gap-4 p-4">
-            <span class="w-full h-fit text-3xl">"Feed"</span>
+        <div class="flex flex-col gap-4 justify-start p-4 w-full h-full overflow-scroll">
+            <span class="w-full text-3xl h-fit">"Feed"</span>
             {suspense}
         </div>
-
     }
 }
 
 #[component]
 fn VoteComponent(vote: Vote) -> impl IntoView {
     view! {
-        <div class="w-full h-fit p-2 rounded-2xl bg-secondary ">
-            <div class="flex flex-col justify-between items-center">
-                <VotePiece piece=vote.first_piece.into() voted_for=vote.voted_for_first/>
-                <div class="rounded-full -m-1.5 w-5 h-5 bg-secondary">"OR"</div>
-                <VotePiece piece=vote.second_piece.into() voted_for=!vote.voted_for_first/>
+        <div class="flex flex-row gap-4 justify-center items-center p-4 rounded-2xl w-fit h-fit bg-secondary">
+            <VotePiece piece=vote.first_piece.into() voted_for=vote.voted_for_first />
+            <div class="z-40 p-4 -m-9 bg-white rounded-full rotate-12 w-fit h-fit text-background">
+                "OR"
             </div>
+            <VotePiece piece=vote.second_piece.into() voted_for=!vote.voted_for_first />
         </div>
     }
 }
 
 #[component]
-fn VotePiece(piece: Piece, voted_for: bool) -> impl IntoView {
+pub fn VotePiece(
+    piece: Piece,
+    #[prop(optional)]
+    #[prop(into)]
+    voted_for: Signal<Option<bool>>,
+    #[prop(optional)] hoverable: Option<bool>,
+) -> impl IntoView {
     let img_src = piece_to_img(&piece);
     view! {
-        <img class="w-16 h-16 rounded-lg border-2 " class:border-green-700=voted_for class:border-red-700=!voted_for src=img_src alt=""/>
+        <img
+            class="w-80 h-80 rounded-lg border-2 bg-secondary border-[#ffffff1a]"
+            class:bg-secondary-hover=move || voted_for.get().unwrap_or(false)
+            class:hover:bg-secondary-hover=hoverable.unwrap_or(false)
+            src=img_src
+            alt=""
+        />
     }
 }
 

@@ -9,14 +9,17 @@ mod chess;
 mod feed;
 mod game_modal;
 mod login;
+mod regiser_or_login;
 mod register;
 mod sidebar;
 mod vote;
 
 use chess::ChessBoard;
+use feed::FeedPage;
 use login::LoginPage;
 use register::RegisterPage;
 use sidebar::Sidebar;
+use vote::VotePage;
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -47,12 +50,13 @@ pub fn App() -> impl IntoView {
         <Title text="Welcome to Leptos" />
 
         <Router>
-            <main class="w-screen h-screen font-chess-sans bg-background">
+            <main class="w-screen h-screen font-chess-sans bg-background overflow-hidden">
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=path!("/register") view=RegisterPage />
                     <Route path=path!("/login") view=LoginPage />
                     <ParentRoute path=path!("") view=Sidebar>
-                        <Route path=path!("") view=LoginPage />
+                        <Route path=path!("feed") view=FeedPage />
+                        <Route path=path!("play") view=VotePage />
                     </ParentRoute>
                 </Routes>
             </main>

@@ -1,4 +1,8 @@
-#[derive(Clone, Debug, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize)]
+use strum_macros::EnumIter;
+
+#[derive(
+    Copy, Clone, Debug, PartialEq, PartialOrd, serde::Deserialize, serde::Serialize, EnumIter,
+)]
 #[cfg_attr(feature = "ssr", derive(sqlx::Type))]
 #[cfg_attr(feature = "ssr", sqlx(type_name = "pieces", rename_all = "lowercase"))]
 pub enum Pieces {
