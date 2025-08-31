@@ -1,0 +1,60 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO votes (id, user_id, first_piece, second_piece, voted_for_first, reason, created_at)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "pieces",
+            "kind": {
+              "Enum": [
+                "bb",
+                "bk",
+                "bn",
+                "bp",
+                "bq",
+                "br",
+                "wb",
+                "wk",
+                "wn",
+                "wp",
+                "wq",
+                "wr"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "pieces",
+            "kind": {
+              "Enum": [
+                "bb",
+                "bk",
+                "bn",
+                "bp",
+                "bq",
+                "br",
+                "wb",
+                "wk",
+                "wn",
+                "wp",
+                "wq",
+                "wr"
+              ]
+            }
+          }
+        },
+        "Bool",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4ddba8e06eeeb9d294d3fb55eec71a00710d60e7a7cb634e62fa098464225f73"
+}

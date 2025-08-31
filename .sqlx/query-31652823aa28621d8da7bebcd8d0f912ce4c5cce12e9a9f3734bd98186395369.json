@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    SELECT votes.id, users.username, votes.first_piece as \"first_piece: Pieces\", votes.second_piece as \"second_piece: Pieces\", votes.voted_for_first, votes.reason, votes.created_at\n    FROM votes\n    JOIN users ON votes.user_id = users.id\n    ORDER BY votes.created_at DESC\n    LIMIT $1 OFFSET $2\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "first_piece: Pieces",
+        "type_info": {
+          "Custom": {
+            "name": "pieces",
+            "kind": {
+              "Enum": [
+                "bb",
+                "bk",
+                "bn",
+                "bp",
+                "bq",
+                "br",
+                "wb",
+                "wk",
+                "wn",
+                "wp",
+                "wq",
+                "wr"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "second_piece: Pieces",
+        "type_info": {
+          "Custom": {
+            "name": "pieces",
+            "kind": {
+              "Enum": [
+                "bb",
+                "bk",
+                "bn",
+                "bp",
+                "bq",
+                "br",
+                "wb",
+                "wk",
+                "wn",
+                "wp",
+                "wq",
+                "wr"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "voted_for_first",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "reason",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "31652823aa28621d8da7bebcd8d0f912ce4c5cce12e9a9f3734bd98186395369"
+}
