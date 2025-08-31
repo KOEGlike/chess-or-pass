@@ -43,5 +43,6 @@
     },
     "rust-analyzer.cargo.features": [
         "ssr",
+        "hydrate"
     ],
 }

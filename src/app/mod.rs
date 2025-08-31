@@ -2,15 +2,16 @@ use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
     components::{ParentRoute, Route, Router, Routes},
-    path,
+    hooks::use_navigate,
+    path, NavigateOptions,
 };
 
 mod chess;
 mod feed;
 mod game_modal;
 mod login;
-mod regiser_or_login;
 mod register;
+mod register_or_login;
 mod sidebar;
 mod vote;
 
@@ -18,6 +19,7 @@ use chess::ChessBoard;
 use feed::FeedPage;
 use login::LoginPage;
 use register::RegisterPage;
+use register_or_login::RegisterOrLoginPage;
 use sidebar::Sidebar;
 use vote::VotePage;
 
@@ -50,16 +52,27 @@ pub fn App() -> impl IntoView {
         <Title text="Welcome to Leptos" />
 
         <Router>
-            <main class="w-screen h-screen font-chess-sans bg-background overflow-hidden">
+            <main class="overflow-hidden w-screen h-screen font-chess-sans bg-background">
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=path!("/register") view=RegisterPage />
                     <Route path=path!("/login") view=LoginPage />
                     <ParentRoute path=path!("") view=Sidebar>
                         <Route path=path!("feed") view=FeedPage />
                         <Route path=path!("play") view=VotePage />
+                        <Route path=path!("login-register") view=RegisterOrLoginPage />
+                        <Route path=path!("") view=RedirectToFeed />
                     </ParentRoute>
                 </Routes>
             </main>
         </Router>
     }
+}
+
+#[component]
+fn RedirectToFeed() -> impl IntoView {
+    Effect::new(move || {
+        let navigate = use_navigate();
+        navigate("/feed", NavigateOptions::default());
+    });
+    view! {}
 }

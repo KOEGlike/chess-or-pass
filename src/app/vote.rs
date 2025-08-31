@@ -32,6 +32,7 @@ pub fn VotePage() -> impl IntoView {
 
         if let Err(e) = &res {
             log!("No user_id found in local storage: {e:?}");
+            use_navigate()("/login-register", NavigateOptions::default());
         }
 
         set_user_id.set(res.ok());
@@ -109,7 +110,8 @@ pub fn VotePage() -> impl IntoView {
     };
 
     view! {
-        <div class="flex flex-col gap-6 justify-center items-center p-4 w-full h-full">{suspense}
+        <div class="flex flex-col gap-6 justify-center items-center p-4 w-full h-full">
+            {suspense}
         </div>
     }
 }
