@@ -38,7 +38,9 @@ pub fn FeedPage() -> impl IntoView {
             <span class="w-full text-3xl h-fit">"Feed"</span>
             {suspense}
             <div class="flex justify-center w-full h-fit">
-                <button on:click=on_more class="button-primary p-4 w-fit">"More!"</button>
+                <button on:click=on_more class="p-4 button-primary w-fit">
+                    "More!"
+                </button>
             </div>
         </div>
     }
@@ -47,7 +49,7 @@ pub fn FeedPage() -> impl IntoView {
 #[component]
 fn VoteComponent(vote: Vote) -> impl IntoView {
     view! {
-        <div class="flex flex-row justify-between items-center w-full h-fit p-4 rounded-4xl border-[#ffffff1a]">
+        <div class="flex flex-row justify-between items-center p-4 w-full h-fit rounded-4xl border-[#ffffff1a]">
             <div class="flex flex-row gap-4 justify-center items-center p-4 rounded-2xl w-fit h-fit bg-secondary">
                 <VotePiece piece=vote.first_piece.into() voted_for=vote.voted_for_first />
                 <div class="z-40 p-4 -m-9 bg-white rounded-full rotate-12 w-fit h-fit text-background">
@@ -55,15 +57,13 @@ fn VoteComponent(vote: Vote) -> impl IntoView {
                 </div>
                 <VotePiece piece=vote.second_piece.into() voted_for=!vote.voted_for_first />
             </div>
-            <div class="flex flex-col gap-4 justify-start items-center p-4 rounded-2xl w-auto h-auto bg-secondary">
+            <div class="flex flex-col gap-4 justify-start items-center p-4 w-auto h-auto rounded-2xl bg-secondary">
                 <span class="text-2xl">"Voted by: " {vote.username}</span>
-                {
-                    if let Some(reason) = vote.reason {
-                        Either::Left(view! { <span class="italic text-lg">"Reason: " {reason}</span> })
-                    } else {
-                        Either::Right(())
-                    }
-                }
+                {if let Some(reason) = vote.reason {
+                    Either::Left(view! { <span class="text-lg italic">"Reason: " {reason}</span> })
+                } else {
+                    Either::Right(())
+                }}
                 <span class="text-sm italic">"At: " {vote.created_at.to_rfc2822()}</span>
             </div>
         </div>

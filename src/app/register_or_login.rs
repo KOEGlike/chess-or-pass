@@ -16,7 +16,7 @@ pub fn RegisterOrLoginPage() -> impl IntoView {
             </button>
             <button
                 on:click=move |_| { use_navigate()("/login", NavigateOptions::default()) }
-                class="p-2 mx-2 text-2xl w-30 button-secondary "
+                class="p-2 mx-2 text-2xl w-30 button-secondary"
             >
                 "Log In"
             </button>

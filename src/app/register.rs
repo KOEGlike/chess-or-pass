@@ -1,6 +1,6 @@
 use crate::app::chess::ChessBoard;
 use gloo::storage::Storage;
-use leptos::either::EitherOf4;
+use leptos::either::{Either, EitherOf4};
 use leptos::logging::*;
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
@@ -16,6 +16,8 @@ use shakmaty::Position;
 use crate::app::game_modal::*;
 
 use crate::types::Error;
+
+const MIN_PASSWORD_LENGTH: usize = 4;
 
 #[derive(Clone, Debug, PartialEq)]
 enum State {
@@ -41,9 +43,49 @@ pub fn RegisterPage() -> impl IntoView {
         State::Username => {
             let (user_name, set_username) = signal(String::new());
 
-            let on_click = move |_| {
-                set_state.set(State::Password {
-                    user_name: user_name.get(),
+            let taken = Resource::new(
+                move || user_name.get(),
+                |name| async move {
+                    if name.is_empty() {
+                        Ok(false)
+                    } else {
+                        is_username_taken(name).await
+                    }
+                },
+            );
+
+            let suspense = move || {
+                Suspend::new(async move {
+                    let taken = taken.await.unwrap_or(false);
+
+                    let on_click = move |_| {
+                        if taken {
+                            return;
+                        }
+
+                        set_state.set(State::Password {
+                            user_name: user_name.get(),
+                        })
+                    };
+
+                    view! {
+                        {if taken {
+                            Either::Left(
+                                view! { <span class="text-red-500">"Username is taken"</span> },
+                            )
+                        } else {
+                            Either::Right(())
+                        }}
+                        <button
+                            on:click=on_click
+                            class="p-4 w-full text-2xl"
+                            class:button-primary=!taken
+                            class:button-secondary=taken
+                            class:bg-secondary-hover=taken
+                        >
+                            "Continue"
+                        </button>
+                    }
                 })
             };
 
@@ -56,14 +98,16 @@ pub fn RegisterPage() -> impl IntoView {
                         type="text"
                         bind:value=(user_name, set_username)
                     />
-                    <button on:click=on_click class="p-4 w-full text-2xl button-primary">
-                        "Continue"
-                    </button>
+                    <Transition fallback=move || {
+                        view! { <div>"Checking..."</div> }
+                    }>{suspense}</Transition>
                 </div>
             })
         }
         State::Password { user_name } => {
             let notation: RwSignal<Vec<(San, Fen)>> = RwSignal::new(vec![]);
+
+            let over_min_moves = move || notation.read().len() >= MIN_PASSWORD_LENGTH;
 
             Effect::new(move |_| {
                 let s = notation
@@ -85,6 +129,10 @@ pub fn RegisterPage() -> impl IntoView {
             let on_continue = {
                 let user_name = user_name.clone();
                 move |_| {
+                    if !over_min_moves() {
+                        return;
+                    }
+
                     set_state.set(State::PasswordConfirm {
                         user_name: user_name.clone(),
                         first_attempt: notation.get(),
@@ -100,9 +148,29 @@ pub fn RegisterPage() -> impl IntoView {
                             "Let's make a password! Play a game of chess with yourself until the game is over! Remember the game well!"
                         </span>
                     </div>
-                    <div class="flex flex-col justify-center items-center w-full h-full">
-                        <ChessBoard on_finished notation />
-                        <GameEndModal ended on_continue />
+                    <div class="flex flex-row justify-around items-center w-full h-full">
+                        <div class="flex flex-col justify-center items-center">
+                            <ChessBoard on_finished notation />
+                            <GameEndModal ended on_continue=on_continue.clone() />
+                        </div>
+
+                        <button
+                            on:click=on_continue
+                            class="p-10 text-2xl"
+                            class:button-primary=over_min_moves
+                            class:button-secondary=move || !over_min_moves()
+                            class:bg-secondary-hover=move || !over_min_moves()
+                        >
+                            {move || {
+                                if over_min_moves() {
+                                    Either::Left("Continue")
+                                } else {
+                                    Either::Right(
+                                        format!("Play at least {MIN_PASSWORD_LENGTH} moves"),
+                                    )
+                                }
+                            }}
+                        </button>
                     </div>
                 </div>
             })
@@ -141,6 +209,12 @@ pub fn RegisterPage() -> impl IntoView {
                 }
             };
 
+            let completed = {
+                let first_attempt = first_attempt.clone();
+                let matches = matches.clone();
+                move || notation.read().len() == first_attempt.len() && matches()
+            };
+
             let (ended, set_ended) = signal(Option::<KnownOutcome>::None);
 
             let on_finished = move |o: KnownOutcome| {
@@ -176,16 +250,24 @@ pub fn RegisterPage() -> impl IntoView {
                             "Now play the same game of chess again!"
                         </span>
                     </div>
-                    <div class="flex flex-col justify-center items-center w-full h-full">
-                        <ChessBoard on_finished notation />
-                        <GameEndModal ended on_continue />
-                        <GameModal
-                            visible=Signal::derive(move || !matches())
-                            main_text="Move doesn't match".to_string()
-                            sub_text="Please try again".to_string()
-                            button_text="Retry".to_string()
-                            on_click=on_restart
-                        />
+                    <div class="flex flex-row justify-around items-center w-full h-full">
+                        <div class="flex flex-col justify-center items-center w-full h-full">
+                            <ChessBoard on_finished notation />
+                            <GameEndModal ended on_continue=on_continue.clone() />
+                            <GameModal
+                                visible=Signal::derive(move || !matches())
+                                main_text="Move doesn't match"
+                                sub_text="Please try again"
+                                button_text="Retry"
+                                on_click=on_restart
+                            />
+                            <GameModal
+                                visible=Signal::derive(completed)
+                                main_text="Password Matches!!"
+                                button_text="Continue!"
+                                on_click=on_continue
+                            />
+                        </div>
                     </div>
                 </div>
             })
@@ -235,6 +317,23 @@ pub fn RegisterPage() -> impl IntoView {
             {current_view}
         </div>
     }
+}
+
+#[server]
+async fn is_username_taken(name: String) -> Result<bool, Error> {
+    use crate::types::AppState;
+    let app_state = expect_context::<AppState>();
+
+    let rec = sqlx::query!(
+        r#"
+        SELECT id FROM users WHERE username = $1
+        "#,
+        name
+    )
+    .fetch_optional(&app_state.db.pool)
+    .await?;
+
+    Ok(rec.is_some())
 }
 
 #[server]

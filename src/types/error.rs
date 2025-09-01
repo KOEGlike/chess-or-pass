@@ -25,6 +25,8 @@ pub enum Error {
     ImpossibleChessGame,
     #[error("The password is incorrect")]
     WrongPassword,
+    #[error("The password is too short")]
+    PasswordTooShort,
 }
 
 #[cfg(feature = "ssr")]
