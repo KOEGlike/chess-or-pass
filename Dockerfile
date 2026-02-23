@@ -6,7 +6,7 @@ FROM rust:1.89-bookworm AS builder
 
 # Install required tools
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends clang
+  && apt-get install -y --no-install-recommends clang pkg-config libssl-dev
 
 # Install cargo-leptos
 RUN cargo install --locked cargo-leptos
