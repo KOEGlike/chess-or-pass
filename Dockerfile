@@ -4,18 +4,12 @@ FROM rust:1.89-bookworm AS builder
 # If you’re using stable, use this instead
 # FROM rust:1.88-bookworm as builder
 
-# Install cargo-binstall, which makes it easier to install other
-# cargo extensions like cargo-leptos
-RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
-RUN tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
-RUN cp cargo-binstall /usr/local/cargo/bin
-
 # Install required tools
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends clang
 
 # Install cargo-leptos
-RUN cargo binstall cargo-leptos -y
+RUN cargo install --locked cargo-leptos
 
 # Add the WASM target
 RUN rustup target add wasm32-unknown-unknown
