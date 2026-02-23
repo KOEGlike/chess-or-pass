@@ -25,6 +25,7 @@ services:
       - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
       - POSTGRES_USER=user1
       - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - db:/var/lib/postgresql/data
 volumes:
