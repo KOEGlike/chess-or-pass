@@ -5,7 +5,8 @@ services:
     ports:
       - 8080:8080
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
        - DATABASE_URL=postgresql://db:5432/db?user=user1&password=${POSTGRES_PASSWORD}
     depends_on:
@@ -21,7 +22,8 @@ services:
     ports:
       - 5432:5432
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
       - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
