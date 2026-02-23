@@ -8,7 +8,7 @@ services:
       - path: .env
         required: false
     environment:
-       - DATABASE_URL=postgresql://db:7422/db?user=user1&password=${POSTGRES_PASSWORD}
+       - DATABASE_URL=postgresql://db:5432/db?user=user1&password=${POSTGRES_PASSWORD}
     volumes:
       - ./images:/images
   db:
