@@ -31,11 +31,5 @@ services:
       - POSTGRES_DB=db
     volumes:
       - db:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user1 -d db -p 5432 -h localhost"]
-      interval: 10s
-      retries: 25
-      start_period: 30s
-      timeout: 10s
 volumes:
   db:
