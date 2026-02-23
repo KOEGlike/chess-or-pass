@@ -27,6 +27,6 @@ services:
       - POSTGRES_DB=db
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql
 volumes:
   db:
