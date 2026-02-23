@@ -1,5 +1,5 @@
 # Get started with a build env with Rust nightly
-FROM rust:1.89-bookworm AS builder
+FROM rust:1.93-bookworm AS builder
 
 # If you’re using stable, use this instead
 # FROM rust:1.88-bookworm as builder
